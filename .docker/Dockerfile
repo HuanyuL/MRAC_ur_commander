@@ -152,14 +152,50 @@ RUN git clone https://github.com/microsoft/Azure_Kinect_ROS_Driver.git
 # WORKDIR /dev_ws/src
 # RUN ["/bin/bash", "-c", "git clone https://github.com/orbbec/ros_astra_camera.git"]
 
+FROM base as cuda
+#------------------------------------------------------
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.1-1_all.deb && dpkg -i cuda-keyring_1.1-1_all.deb 
 
-FROM ka as open3d
+RUN apt-get update && apt-get install -y cuda-toolkit-12-4\
+    zstd \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+
+FROM cuda as zed
+#------------------------------------------------------
+WORKDIR /
+RUN wget -q -O ZED_SDK_Ubuntu20_cuda12.1_v4.1.1.zstd https://download.stereolabs.com/zedsdk/4.1/cu121/ubuntu20?_gl=1*r7fk9k*_gcl_au*MTA0MjAxMjQ4Ni4xNzE1MTgwMzYx
+
+RUN chmod +x ZED_SDK_Ubuntu20_cuda12.1_v4.1.1.zstd && \
+    ./ZED_SDK_Ubuntu20_cuda12.1_v4.1.1.zstd -- silent runtime-only skip_tools skip_cuda
+
+RUN apt-get update && apt-get install -y --no-install-recommends\
+    ros-$ROS_DISTRO-diagnostic-updater \
+    ros-$ROS_DISTRO-image-geometry \
+    ros-$ROS_DISTRO-image-transport-plugins \
+    ros-$ROS_DISTRO-camera-info-manager \
+    ros-$ROS_DISTRO-xacro \
+    ros-$ROS_DISTRO-rgbd-launch \
+    ros-$ROS_DISTRO-joint-state-publisher \
+    ros-$ROS_DISTRO-robot-state-publisher \
+    ros-$ROS_DISTRO-rtabmap \
+    ros-$ROS_DISTRO-rtabmap-ros \
+    ros-$ROS_DISTRO-depthimage-to-laserscan \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /dev_ws/src
+RUN git clone --recursive https://github.com/stereolabs/zed-ros-wrapper.git && cd .. && rosdep install --from-paths src --ignore-src -r -y
+
+
+FROM zed as open3d
 
 RUN pip3 install --no-cache-dir --upgrade open3d
 
 FROM open3d as build
 
 COPY . /dev_ws/src/
+# zed sdk somehow overwrites numpy
+RUN chmod -R 777 /usr/local/lib/python3.8/dist-packages/numpy/   
 
 WORKDIR /dev_ws
 RUN ["/bin/bash", "-c", "source /opt/ros/$ROS_DISTRO/setup.bash &&\
