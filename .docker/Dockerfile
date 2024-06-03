@@ -184,7 +184,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends\
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /dev_ws/src
-RUN git clone --recursive https://github.com/stereolabs/zed-ros-wrapper.git && cd .. && rosdep install --from-paths src --ignore-src -r -y
 
 
 FROM zed as open3d
