@@ -331,7 +331,7 @@ class IndustrialReconstruction(object):
             try:
                 # Convert your ROS Image message to OpenCV2
                 # TODO: Generalize image type
-                cv2_depth_img = self.bridge.imgmsg_to_cv2(depth_image_msg, "16UC1")
+                cv2_depth_img = self.bridge.imgmsg_to_cv2(depth_image_msg, "32FC1")
                 cv2_rgb_img = self.bridge.imgmsg_to_cv2(rgb_image_msg, "rgb8")
                 # cv2_rgb_img = cv2_rgb_img[:, :, :3]
             except CvBridgeError:

@@ -20,5 +20,5 @@ docker run -it --privileged \
     --runtime=nvidia \
     --net=host \
     --cap-add=sys_nice \
-    --gpus 'all,"capabilities=compute,display,graphics,utility"' \
+    --gpus 'all,"capabilities=compute,display,graphics,utility,video"' \
     iaac_ur_commander:latest
